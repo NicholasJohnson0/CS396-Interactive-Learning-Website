@@ -16,13 +16,13 @@ The access the users, the credentials are as below -
   email - nicholas.johnson12c@gmail.com
   password - changeme
 ```
-3. Student 1
+2. Student 1
 ```
   email - coolstudent29@gmail.com 
   username - SunglassesEmoji_Student
   password - 1234Student!
 ```
-4. Student 2
+3. Student 2
 ```
   email - epicstudent2@gmail.com
   username - Student 2

@@ -1,0 +1,470 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <style>
+        /* CSS styles for the two-column layout */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex; /* Use Flexbox */
+            max-width: 100%; /* Set maximum width for the content */
+            margin: 0 auto; /* Center the content horizontally */
+            padding: 20px;
+        }
+        .column {
+            padding: 10px;
+            border: 1px solid #ccc; /* Border for visualization */
+            box-sizing: border-box; /* Include padding and border in the width */
+        }
+        .left-column {
+            width: 40%; /* Set the width for the left column */
+        }
+        .right-column {
+            width: 60%; /* Set the width for the right column */
+        }
+        .styled-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .styled-table th,
+        .styled-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+
+    <!-- Grades table -->
+    <script>
+        function sortTable(columnName) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchCount = 0;
+            table = document.getElementById("studentScoresTable");
+            switching = true;
+            dir = "asc";
+            
+            //If 'Sort by Subject' button is clicked, call the sortTableBySubject function
+            if (columnName === 'subject') {
+                sortTableBySubject();
+                return;
+            } else if (columnName === 'username') {
+                sortTableByUsername();
+                return;
+            }
+
+            if (columnName === 'number_grade_descending') {
+                dir = "desc";
+            } else if (columnName === 'number_grade_ascending') {
+                dir = "asc";
+            }
+            
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("td")[2]; // Index 2 is for Number Grade column
+                    y = rows[i + 1].getElementsByTagName("td")[2];
+
+                    var xValue = parseFloat(x.innerHTML);
+                    var yValue = parseFloat(y.innerHTML);
+
+                    if (dir === "asc") {
+                        if (xValue > yValue) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (xValue < yValue) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchCount++;
+                } else {
+                    if (switchCount === 0 && dir === "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+
+        }
+
+        function sortTableBySubject() {
+            var table, rows, switching, i, x, shouldSwitch;
+            table = document.getElementById("studentScoresTable");
+            switching = true;
+
+            var order = {
+                'reading': 1,
+                'math': 2,
+                'science': 3,
+                'history': 4
+            };
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("td")[1]; // Index 1 is for Subject column
+
+                    var xValue = x.innerHTML.trim();
+                    var nextXValue = rows[i + 1].getElementsByTagName("td")[1].innerHTML.trim();
+
+                    if (order[xValue] > order[nextXValue]) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+        }
+
+        function sortTableByUsername() {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById("studentScoresTable");
+            switching = true;
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("td")[0]; //Index 0 is for Username column
+
+                    var xValue = x.innerHTML.trim();
+                    var nextXValue = rows[i + 1].getElementsByTagName("td")[0].innerHTML.trim();
+
+                    if (xValue > nextXValue) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+        }
+    </script>
+
+    <!-- Scrpts for bar chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    
+
+    
+    <meta charset="UTF-8">
+    <title>Quiz Scores</title>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="column left-column">
+            <h1>Submission History</h1>
+            <hr>
+            {% if user.is_teacher %}
+                <h2>All Student Scores</h2>
+                <ul>
+                    {% for submission in quiz_submissions %}
+                        <li>
+                            Student: {{ submission.user.username }}
+                            <br>
+                            Quiz Question: {{ submission.quiz_question.question }}
+                            <br>
+                            Subject: {{ submission.quiz_question.subject }}
+                            <br>
+                            Selected Option: {{ submission.selected_option }}
+                            <br>
+                            Score:
+                            {% if submission.score == 0 %}
+                                0%
+                            {% elif submission.score == 1 %}
+                                100%
+                            {% else %}
+                                {{ submission.score }}%
+                            {% endif %}
+                            <br>
+                            Attempts: {{ submission.attempts }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <h2>Your Quiz Scores</h2>
+                <ul>
+                    {% for submission in quiz_submissions %}
+                        <li>
+                            Quiz Question: {{ submission.quiz_question.question }}
+                            <br>
+                            Subject: {{ submission.quiz_question.subject }}
+                            <br>
+                            Selected Option: {{ submission.selected_option }}
+                            <br>
+                            Score:
+                            {% if submission.score == 0 %}
+                                0%
+                            {% elif submission.score == 1 %}
+                                100%
+                            {% else %}
+                                {{ submission.score }}%
+                            {% endif %}
+                            <br>
+                            Attempts: {{ submission.attempts }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+        </div>
+
+        <div class="column right-column">
+            <h1>Analytics</h1>
+            <hr>
+            {% if user.is_teacher %}
+                <!-- Displays Teacher analytics -->
+                
+                
+                <!-- View Scores (Sortable) (Assign Letter grade to 0-100 grade) -->
+                <h2>All Student Scores</h2>
+
+                    <div>
+                        <button onclick="sortTable('username')">Sort by Username</button>
+                        <button onclick="sortTable('subject')">Sort by Subject</button>
+                        <button onclick="sortTable('number_grade_descending')">Sort by Number Grade ↓</button>
+                        <button onclick="sortTable('number_grade_ascending')">Sort by Number Grade ↑</button>
+                    </div>
+                    
+                    <table id="studentScoresTable" class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Subject</th>
+                                <th>Number Grade</th>
+                                <th>Letter Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject, grades in subject_grades.items %}
+                                {% for grade in grades.user_grades %}
+                                    <tr>
+                                        <td>{{ grade.user }}</td>
+                                        <td>{{ subject }}</td>
+                                        <td>{{ grade.number_grade }}</td>
+                                        <td>{{ grade.letter_grade }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                <hr>
+                
+                <h2>Bar Chart - Student Scores</h2>
+                <!-- Bar Chart to display student subject scores (>= 5 quiz) -->
+                <canvas id="subjectScoresChart" width="400" height="200"></canvas>
+                
+                <script>
+                    //Extract scores for all students
+                    var studentData = [
+                        {% for student in students %}
+                            {
+                                username: "{{ student.username }}",
+                                readingGrade: {{ student.reading_grade }},
+                                mathGrade: {{ student.math_grade }},
+                                scienceGrade: {{ student.science_grade }},
+                                historyGrade: {{ student.history_grade }},
+                                color: getRandomColor() //Function to generate random colors
+                            },
+                        {% endfor %}
+                    ];
+                
+                    function getRandomColor() {
+                        var letters = '0123456789ABCDEF';
+                        var color = '#';
+                        for (var i = 0; i < 6; i++) {
+                            color += letters[Math.floor(Math.random() * 16)];
+                        }
+                        return color;
+                    }
+                
+                    //Create arrays to store labels and data for the chart
+                    var labels = ['Reading', 'Math', 'Science', 'History'];
+                    var datasets = [];
+                
+                    //Iterate through student data and create datasets for each student
+                    for (var i = 0; i < studentData.length; i++) {
+                        datasets.push({
+                            label: studentData[i].username,
+                            data: [
+                                studentData[i].readingGrade,
+                                studentData[i].mathGrade,
+                                studentData[i].scienceGrade,
+                                studentData[i].historyGrade
+                            ],
+                            backgroundColor: studentData[i].color,
+                            borderColor: studentData[i].color,
+                            borderWidth: 1
+                        });
+                    }
+                
+                    //Create the chart using the extracted scores for all students
+                    var ctx = document.getElementById('subjectScoresChart').getContext('2d');
+                    var myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: datasets
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            },
+                        }
+                    });
+                </script>
+
+                <hr>
+                <h2>Pie Chart - Letter Grades</h2>
+                <!-- Pie chart to display number of letter grades -->
+                <canvas id="letterGradesChart" width="400" height="200"></canvas>
+
+                <script>
+                    //Extract letter grades for all students and subjects
+                    var letterGradesData = {
+                        'A': 0,
+                        'B': 0,
+                        'C': 0,
+                        'D': 0,
+                        'F': 0
+                    };
+                
+                    //Count letter grades for all students
+                    {% for student in students %}
+                        letterGradesData['{{ student.reading_letter_grade }}'] += 1;
+                        letterGradesData['{{ student.math_letter_grade }}'] += 1;
+                        letterGradesData['{{ student.science_letter_grade }}'] += 1;
+                        letterGradesData['{{ student.history_letter_grade }}'] += 1;
+                    {% endfor %}
+                
+                    //Extract labels and data for the pie chart
+                    var labels = ['A', 'B', 'C', 'D', 'F'];
+                    var data = [
+                        letterGradesData['A'],
+                        letterGradesData['B'],
+                        letterGradesData['C'],
+                        letterGradesData['D'],
+                        letterGradesData['F']
+                    ];
+                
+                    //Create pie chart using Chart.js
+                    var ctx = document.getElementById('letterGradesChart').getContext('2d');
+                    var myPieChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: getRandomColors()
+                            }]
+                        },
+                        options: {
+                            title: {
+                                display: true,
+                                text: 'Number of A Grades'
+                            }
+                        }
+                    });
+                
+                    //Function to generate random colors
+                    function getRandomColors() {
+                        var colors = [];
+                        var letters = '0123456789ABCDEF';
+                        for (var i = 0; i < labels.length; i++) {
+                            var color = '#';
+                            for (var j = 0; j < 6; j++) {
+                                color += letters[Math.floor(Math.random() * 16)];
+                            }
+                            colors.push(color);
+                        }
+                        return colors;
+                    }
+                </script>
+                
+
+            {% else %}
+                <!-- Student analytics -->
+
+                <!-- Display user scores and display letter grade -->
+                <h2>
+                    {{request.user.username}}'s  Grades
+                </h2>
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Number Grade</th>
+                            <th>Letter Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Reading</td>
+                            <td>{{ request.user.reading_grade }}</td>
+                            <td>{{ request.user.reading_letter_grade }}</td>
+                        </tr>
+                        <tr>
+                            <td>Science</td>
+                            <td>{{ request.user.science_grade }}</td>
+                            <td>{{ request.user.science_letter_grade }}</td>
+                        </tr>
+                        <tr>
+                            <td>Math</td>
+                            <td>{{ request.user.math_grade }}</td>
+                            <td>{{ request.user.math_letter_grade }}</td>
+                        </tr>
+                        <tr>
+                            <td>History</td>
+                            <td>{{ request.user.history_grade }}</td>
+                            <td>{{ request.user.history_letter_grade }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+
+{% endblock content %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Take Quiz</title>
+</head>
+<body>
+    <h1>Take Quiz</h1>
+    
+    {% if submission.attempts < question.max_attempts %}
+        <form method="post">
+            {% csrf_token %}
+            <p>{{ question.question }}</p>
+            <ul>
+                <li><input type="radio" name="selected_option" value="{{ question.op1 }}"> {{ question.op1 }}</li>
+                <li><input type="radio" name="selected_option" value="{{ question.op2 }}"> {{ question.op2 }}</li>
+                <li><input type="radio" name="selected_option" value="{{ question.op3 }}"> {{ question.op3 }}</li>
+                <li><input type="radio" name="selected_option" value="{{ question.op4 }}"> {{ question.op4 }}</li>
+            </ul>
+            <input type="submit" value="Submit">
+        </form>
+    {% else %}
+        <p>You have reached the maximum number of attempts for this question.</p>
+    {% endif %}
+</body>
+</html>
+{% endblock content %}

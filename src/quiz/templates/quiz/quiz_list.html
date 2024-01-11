@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz List</title>
+</head>
+<body>
+
+    <form method="get">
+        <label for="subject">Select Subject(s):</label><br>
+        <input type="checkbox" name="subject" value="Reading"> Reading<br>
+        <input type="checkbox" name="subject" value="Math"> Math<br>
+        <input type="checkbox" name="subject" value="Science"> Science<br>
+        <input type="checkbox" name="subject" value="History"> History<br>
+        <input type="checkbox" name="subject" value="All" id="select-all"> All Subjects<br>
+    
+        <input type="submit" value="Search">
+    </form>
+    
+
+    <h1>Quiz List</h1>
+    <ul>
+        {% if not request.user.is_teacher %}
+            {% for quiz in quizzes %}
+                <li>
+                    <a href="{% if user.is_authenticated %}{% url 'take_quiz' quiz.id %}{% else %}# {% endif %}">
+                        {{ quiz.question }} | Subject: {{ quiz.subject }}
+                    </a>
+                    {% if quiz.id in user_scores %}
+                        <span>(Score: {{ user_scores|get_score:quiz.id }})</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        {% endif %}
+        
+        {% if request.user.is_teacher %}
+            {% for quiz in quizzes %}
+            <li>
+                {{ quiz.question }} | Subject: {{ quiz.subject }}
+            </li>
+            {% endfor %}
+        {% endif %}
+    </ul>
+</body>
+</html>
+{% endblock content %}

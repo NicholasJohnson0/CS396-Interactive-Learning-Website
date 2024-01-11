@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style type="text/css">
+
+    .card {
+        max-width: 700px;
+    }
+
+    .container{
+        padding: 20px;
+    }
+
+</style>
+
+<div class="container">
+    <div class="row">
+
+        <div class="card m-auto">
+            {% if blog_post.image %}
+                <img class="card-img-top" src="{{blog_post.image.url}}">
+            {% endif %}
+
+            <div class="card-body my-2">
+                <h2 class="card-title">{{blog_post.title}}</h2>
+                <p class="card-text">{{blog_post.body|safe}}</p>
+            </div>
+
+            <div class="card-body mt-2 mb-2">
+                {% if blog_post.author == request.user %}
+                    <a href="{% url 'blog:edit' blog_post.slug %}" class="btn btn-primary">Update</a>
+                {% endif %}
+                {% if blog_post.document %}
+                    <a href="{{ blog_post.document.url }}" class="btn btn-primary" download>Download Document</a>
+                {% endif %}
+            </div>
+
+            <div class="card-footer text-muted">
+                Updated on {{blog_post.date_updated}} by {{blog_post.author}}
+            </div>
+        </div>
+
+        <!-- Add Reply Section -->
+        <div class="card m-auto mt-3">
+            <div class="card-body">
+                <h3 class="card-title">Replies:</h3>
+                <ul>
+                    {% for reply in blog_post.postreply_set.all %}
+                        <li>{{ reply.author }} said: {{ reply.content }}</li>
+                    {% empty %}
+                        <li>No replies yet.</li>
+                    {% endfor %}
+                </ul>
+
+                <h3 class="card-title">Reply to this post:</h3>
+                <form method="post" action="{% url 'blog:detail' blog_post.slug %}">
+                    {% csrf_token %}
+                    {{ reply_form.as_p }}
+                    <button type="submit" class="btn btn-primary">Submit Reply</button>
+                </form>
+            </div>
+        </div>
+        <!-- End Reply Section -->
+
+    </div>
+</div>
+
+{% endblock content %}

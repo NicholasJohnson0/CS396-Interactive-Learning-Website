@@ -1,0 +1,72 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style type="text/css"> 
+    .content-title {
+        text-align: center;
+    }
+</style>
+
+<div class="content-title">
+    <h2>Account</h2>
+</div>
+
+<div class="content-title">
+    <form  method="post">{% csrf_token %}
+        {% for field in account_form %}
+            <p>
+                {{field.label_tag}}
+                {{field}}
+
+                {% if field.help_text %}
+                    <small style="color: grey;">{{field.help_text}}</small>
+                {% endif %}
+            </p>
+        {% endfor %}
+        
+        {% for field in login_form %}
+            {% for error in field.errors %}
+                <p style="color: red;">{{error}}</p>
+            {% endfor %}
+        {% endfor %}
+
+        {% if account_form.non_field_errors %}
+            <div style="color:red;">
+                <p>{{account_form.non_field_errors}}</p>
+            </div>
+        {% endif %}
+        <button type="submit">Save Changes</button>
+        
+    </form>
+
+    <div>
+        <button>
+            <a class="m-auto" href="{% url 'password_change' %}">Change Password</a>
+        </button>
+    </div>
+</div>
+
+<div class="border-rounded">
+    <div class="container mt-4 p-4">
+        <div class="row">
+            <div class="blog-posts">
+                <h3 class="mb-3 font-weight-normal">Blog posts:</h3>
+                {% if blog_posts %}
+                <ul>   
+                    {% for post in blog_posts %}
+                        <a href="{% url 'blog:detail' post.slug %}" style="text-decoration: none;">
+                            <li class="list-group-item">{{post}}</li>
+                        </a>
+                    {% endfor %}
+                </ul> 
+                {% else %}
+                    <p>You have no blog posts. Create blog post here! <a href="{% url 'blog:create' %}">here</a>.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
